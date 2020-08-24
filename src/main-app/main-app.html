@@ -1,0 +1,1073 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<!--file uploader component-->
+<link rel="import" href="../../bower_components/yo-file-uploader/yo-file-uploader.html">
+
+<!--d3 parser for csv-->
+<!-- <script src="../../libs/d3-dsv.js"></script> -->
+
+<link rel="import" href="../../bower_components/app-layout/app-layout.html">
+<!--iron-ajax-->
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+
+<link rel="import" href="../../bower_components/neon-animation/web-animations.html">
+
+<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
+
+<link rel="import" href="../../bower_components/data-filter/data-filter.html">
+
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+
+<link rel="import" href="../../bower_components/isw-dropdown-menu/isw-dropdown-menu.html">
+
+<link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
+
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+
+
+
+<!-- customized html elements -->
+<link rel="import" href="./analysis-tab.html">
+<link rel="import" href="./suggest-panel.html">
+
+<dom-module id="main-app">
+  <template>
+    <style>
+
+      :host {
+        display: block;
+        font-family: 'Open Sans', sans-serif;
+      }
+
+      iron-selector>* {
+        padding: 8px;
+      }
+
+      .iron-selected {
+        background-color: var(--google-blue-500);
+        color: white;
+      }
+
+      a {
+        text-decoration: none;
+        font-size: inherit;
+        color: inherit;
+      }
+
+      app-header {
+        /* position: fixed; */
+        top: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--paper-blue-50);
+      }
+
+      app-toolbar {
+        @apply --layout-horizontal;
+        @apply --layout-center-justified;
+        background-color: var(--paper-blue-100);
+        height: 300px;
+        width: 100%;
+      }
+
+      paper-dropdown-menu {
+        width: 300px;
+      }
+
+      paper-icon-item,
+      paper-item {
+        width: 300px;
+        max-width: 500px;
+      }
+
+      yo-file-uploader {
+        width: 300px;
+        height: 30px;
+        display: inline-block;
+      }
+
+      isw-dropdown-menu {
+        display: inline-block;
+        margin-right: 30px;
+        width: 350px;
+      }
+
+      analysis-tab {
+        margin-bottom: 10px;
+        border-radius: 5px;
+        border: thick solid rgb(226, 225, 225);
+        /* max-height: 400px;*/
+        overflow-y: auto;
+      }
+
+      paper-button.button-custom {
+          
+          margin-left: 60px;
+          align-content: right;
+
+          /* These could also be individually defined for each of the
+          specific css classes, but we'll just do it once as an example */
+          --paper-button-flat-keyboard-focus: {
+              background-color: var(--paper-blue-200);
+              color: white;
+          }
+
+          ;
+
+          --paper-button-raised-keyboard-focus: {
+              background-color: var(--paper-blue-200);
+              color: white;
+          }
+
+          ;
+      }
+
+      paper-button.button-custom:hover {
+          background-color: var(--paper-blue-100);
+      }
+
+      paper-button.button-custom[active] {
+          background-color: var(--paper-blue-100);
+      }
+
+      paper-button.blue {
+          background-color: var(--paper-blue-500);
+          color: white;
+
+          --paper-button-raised-keyboard-focus: {
+              background-color: var(--paper-blue-200) !important;
+              color: white !important;
+          }
+
+          ;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      .tabs {
+        @apply --layout-horizontal;
+        @apply --layout-center-justified;
+      }
+
+      img {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        z-index: 9999;
+        background: url("https://skillsofthemodernage.com.au/img/resources/anim-icons/compass/animat-compass.gif") no-repeat center center white;
+      }
+
+      suggest-panel {
+        margin-top: 5px;
+        margin-bottom: 50px;
+        border: solid rgb(226, 225, 225);
+        border-radius: 5px;
+      }
+
+      paper-tooltip {
+                --paper-tooltip: {
+                    font-size: 14px;
+                }
+            }
+
+      iron-icon.checkbox.checked {
+        color: #00508C;
+      }
+
+      iron-icon.checkbox.unchecked {
+        color: var(--secondary-text-color);
+      }
+
+      paper-icon-item iron-icon.checkbox.checked {
+        display: none;
+      }
+
+      paper-icon-item iron-icon.checkbox.unchecked {
+        display: block;
+      }
+
+      paper-icon-item.iron-selected iron-icon.checkbox.checked {
+        display: block;
+      }
+
+      paper-icon-item.iron-selected iron-icon.checkbox.unchecked {
+        display: none;
+      }
+
+      .collapse {
+        background-color: var(--paper-blue-500);
+        margin-bottom: 20px;
+      }
+
+      .header-bar-height {
+        height: 60px;
+        @apply --layout-horizontal;
+        @apply --layout-center-justified;
+      }
+    </style>
+    <iron-ajax id="httpRequest" url="http://localhost:5000/datasets" params='' handle-as="json"
+      on-response="handleResponse" debounce-duration="300" loading="{{loading}}">
+    </iron-ajax>
+
+    <iron-ajax id="computeRequest" url="http://localhost:5000/compute" params='' handle-as="json"
+      on-response="handleComputeResponse" debounce-duration="300" loading="{{loading}}">
+    </iron-ajax>
+    <!-- <iron-ajax id="computeRequest" url="http://localhost:5000/compute" params='' handle-as="json"
+      on-response="handleComputeResponse" debounce-duration="300" loading="{{true}}">
+    </iron-ajax> -->
+
+    <iron-ajax id="calculateIntermediateRequest" url="http://localhost:5000/calculate" params='' handle-as="json"
+      on-response="handleComputeResponse" debounce-duration="300" loading="{{loading}}">
+    </iron-ajax>
+
+    <!-- might have to do same to get intermediate dataframe loaded-->
+    <iron-ajax id="dataLoadRequest" url="http://localhost:5000/dataload" params='' handle-as="json"
+      on-response="dataLoadedResponse" debounce-duration="3000">
+    </iron-ajax>
+
+    <iron-ajax id="intermediateDataRequest" url="http://localhost:5000/intermediatedata" params='' handle-as="json"
+      on-response="intermediateDataResponse" debounce-duration="3000" loading="{{loading}}">
+    </iron-ajax>
+
+    <iron-ajax id="exportDataRequest" url="http://localhost:5000/export" params='' handle-as="json"
+      on-response="exportDataResponse" debounce-duration="3000">
+    </iron-ajax> 
+
+    <template is="dom-if" if="{{!loading}}">
+      <app-header-layout id="app-header" fullbleed>
+        <app-header id="app" class="header-bar-height" slot="header" reveals fixed>
+          <paper-button id="collapse-button" on-click="toggle" >
+            <iron-icon src=../../icons/lodestar-logo.png style="height: 40px; width: 40px;"></iron-icon>
+            <div style="font-size: 30px; text-transform: none;">Lodestar</div>
+          </paper-button>
+        </app-header>
+        <app-toolbar id="toolbar" class="toolbar">
+          <div id="select" class="tabs" style="margin: 50px;">
+            <paper-dropdown-menu class="dataset-dropdown-menu" label="Select A Dataset" vertical-offset="60">
+              <paper-listbox slot="dropdown-content" selected="{{selectedDataset}}" attr-for-selected="label"
+                on-selected-changed="datasetChanged">
+                <dom-repeat items="[[datasetList]]" as="item">
+                  <template>
+                    <paper-item label=[[item]]>
+                      [[item]]
+                    </paper-item>
+                  </template>
+                </dom-repeat>
+              </paper-listbox>
+            </paper-dropdown-menu>
+          </div>
+          <div class="tabs" style="margin: 50px;">
+            <template is="dom-if" if="true">
+              <yo-file-uploader accept="text/*"></yo-file-uploader>
+              <paper-button on-click="_fileUpload" raised>
+                <core-icon icon="file-upload"></core-icon>
+                Submit
+              </paper-button>
+              <!-- <paper-tooltip >upload a dataset for analysis</paper-tooltip> -->
+            </template>
+          </div>
+          <div class="tabs" style="margin: 50px;">
+            <template is="dom-if" if="true">
+              <paper-button class="button-custom" raised id="exportNotebook" on-click="exportAsNotebook">
+                Export
+              </paper-button>
+              <!-- <paper-tooltip >export as jupyter notebook</paper-tooltip> -->
+            </template>
+          </div>
+        </app-toolbar>
+      </app-header-layout>
+    </template>
+
+    <template is="dom-if" if="{{loading}}">
+      <img></img>
+    </template>
+
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class MainApp extends Polymer.Element {
+      static get is() { return 'main-app'; }
+      static get properties() {
+        return {
+          //adding list for dataframe
+
+          selectedDataframe: {
+            type: String,
+            value: null,
+            notify: true
+          },
+
+          selectedDataset: {
+            type: String,
+            value: '',
+            notify: true
+          },
+
+          datasetList: {
+            type: Array,
+            value: [],
+          },
+          currentState: {
+            type: String,
+            value: "",
+            notify: true
+          },
+
+          dataframeList: {
+            type: Array,
+            value: [],
+          },
+
+          allTabsList: {
+            type: Array,
+            value: [],
+          },
+
+          selectedSuggestAnalysis: {
+            type: String,
+            value: "",
+            notify: true
+          },
+
+          numberOfSteps: {
+            type: Number,
+            value: 0,
+            notify: true
+          },
+          numberOfStepsSuggest: {
+            type: Number,
+            value: 0,
+            notify: true
+          },
+          uploadedData: {
+            type: Boolean,
+            value: false
+          }
+
+        };
+      }
+
+      connectedCallback() {
+        //debugger;
+        // console.log('connectedCallback');
+
+        super.connectedCallback();
+
+        // send out the request for list of datasets
+        var requestElement = this.shadowRoot.getElementById("httpRequest");
+        requestElement.generateRequest();
+        var self = this;
+        self.addEventListener('selected-analysis', self.suggestionSelected.bind(self));
+        self.addEventListener('delete-analysis-cell', self.removeAnalysisTab.bind(self));
+        self.addEventListener('export-data', self.exportData.bind(self));
+        self.addEventListener('delete-downstream', self.deleteDownstream.bind(self));
+        self.addEventListener('error', self.handleError.bind(self));
+
+      }
+
+      async handleError(e) {
+        //debugger;
+        console.log('handleError');
+        console.log(e)
+        
+        await new Promise(r => setTimeout(r, 2000));
+      }
+
+      handleResponse(e) {
+        //debugger;
+        console.log('handleResponse');
+
+        var responseDetail = e.detail;
+        if (responseDetail.url === 'http://localhost:5000/datasets') {
+          console.log(responseDetail.response);
+          this.datasetList = responseDetail.response;
+        }
+      }
+
+      toggle(e) {
+        //console.log(this);
+        // var collapse = this.shadowRoot.querySelector('#'+"collapse");
+        // var button = this.shadowRoot.querySelector('#'+"collapse-button");
+        // collapse.toggle()
+
+        // if (collapse.opened) {
+        //   Polymer.dom(button).setAttribute('icon', 'expand-less');
+        // } else {
+        //   Polymer.dom(button).setAttribute('icon', 'expand-more');
+        // }
+        this.shadowRoot.querySelector("#toolbar").scrollIntoView()
+
+      }
+
+      exportAsNotebook(e) {
+        var requestElement = this.shadowRoot.getElementById("exportDataRequest");
+
+        requestElement.generateRequest();
+      }
+
+      downloadNotebook(response) {
+        console.log('In downloadNotebook');
+        console.log(response);
+
+        var data, filename, link;
+        
+        filename = 'notebook.ipynb';
+
+        let nb = 'data:text/ipynb;charset=utf-8,' + response;
+        data = encodeURI(nb);
+
+        link = document.createElement('a');
+        link.setAttribute('href', data);
+        link.setAttribute('download', filename);
+        link.click();
+      }
+
+      exportDataResponse(e){
+        console.log(e);
+        console.log(e.detail.response);
+
+        let response = e.detail.response
+        if (response.status == "success") {
+
+          this.downloadNotebook(response.data)
+
+          let outer = this.shadowRoot.getElementById('app-header')
+          let inner = document.createElement('div');
+          outer.shadowRoot.append(inner);
+
+          document.addEventListener('export_success', event => alert(event.detail));
+
+          inner.dispatchEvent(new CustomEvent('export_success', {
+            bubbles: true,
+            composed: true,
+            detail: "We were able to export your Lodestar workflow as a Jupyter Notebook."
+          }));
+        } else {
+          let outer = this.shadowRoot.getElementById('app-header')
+          let inner = document.createElement('div');
+          outer.shadowRoot.append(inner);
+
+          document.addEventListener('export_failure', event => alert(event.detail));
+
+          inner.dispatchEvent(new CustomEvent('export_failure', {
+            bubbles: true,
+            composed: true,
+            detail: "A failure occured. We were not able to export your Lodestar workflow as a Jupyter Notebook."
+          }));
+        }
+
+      }
+
+      _fileUpload(e) {
+        console.log("File uploaded: ");
+        console.log(e);
+        if (this.selectedDataset.length == 0) {
+          //debugger;
+          console.log('fileUpload')
+
+          var uploadFile = this.shadowRoot.querySelector("yo-file-uploader");
+          console.log(uploadFile.files);
+
+          if (uploadFile && uploadFile.files && uploadFile.files[0]) { 
+            //let curFile = uploadFile.files[0];
+            let name = uploadFile.files[0].name;
+            let extension = name.split('.').pop();
+
+            if (extension === "csv") {            
+              var reader = new FileReader();
+              reader.readAsBinaryString(uploadFile.files[0]);
+              console.log(reader.result);
+
+              var self = this 
+              // onload function will be called automatically by the browser,
+              // we do not need to call it explicitly
+              reader.onload = function () {
+                // transfer data to the server
+                console.log('getting element dataLoadRequest');
+                var requestElement = self.shadowRoot.getElementById("dataLoadRequest");
+                requestElement.params = {
+                  dataset: reader.result,
+                  type: "upload"
+                };
+                requestElement.generateRequest();
+              }
+              console.log('loading dataset for the first time');
+              this.uploadedData = true;
+              this._sendComputeRequest('uploadedData', '', 'suggest');
+            } else {
+              console.log("No CSV Uploaded");
+            }
+          } else {
+            console.log("No File Uploaded");
+          }
+
+        } else {
+          var elementList = this.shadowRoot.querySelector('app-header-layout').children;
+
+          for (var i = elementList.length - 1; i > 1; i--) {
+            elementList[(elementList.length - 1)].remove()
+          }
+
+          console.log('getting element intermediateDataRequest');
+          var requestElement = this.shadowRoot.getElementById("intermediateDataRequest");
+          requestElement.params = {
+            index: 1,
+            type: 'delete'
+          };
+          requestElement.generateRequest();
+
+          //debugger;
+          console.log('fileUpload')
+          var reader = new FileReader();
+
+          var uploadFile = this.shadowRoot.querySelector("yo-file-uploader");
+          console.log(uploadFile.files);
+
+          var reader = new FileReader();
+
+          reader.readAsBinaryString(uploadFile.files[0]);
+
+          console.log(reader.result);
+
+          var self = this
+
+          // onload function will be called automatically by the browser,
+          // we do not need to call it explicitly
+          reader.onload = function () {
+            // transfer data to the server
+            console.log('getting element dataLoadRequest');
+            var requestElement = self.shadowRoot.getElementById("dataLoadRequest");
+            requestElement.params = {
+              dataset: reader.result,
+              type: "upload"
+            };
+            requestElement.generateRequest();
+
+          }
+          this.uploadedData = true;
+          this._sendComputeRequest("uploadedData", '', 'suggest');
+        }
+
+      }
+
+      _refreshPage(e) {
+        console.log("In refresh page");
+        document.location.reload();
+        //console.log(e.detail.response);
+      }
+
+      intermediateDataResponse(e) {
+        //debugger;
+        console.log('intermediateDataResponse');
+
+        var response = e.detail.response;
+        var self = this;
+        if (response['type'] == 'export') {
+          self.downloadCSV(JSON.parse(response['data']));
+        }
+      }
+
+      handleComputeResponse(e) {
+        //debugger;
+
+        console.log('handleComputeResponse');
+        var response = e.detail.response;
+        console.log(e.detail.response);
+        var self = this;
+
+        //check for error in codeblock execution
+        if (response.type == 'error') {
+          console.log("error occurred");
+          let outer = self.shadowRoot.getElementById('app-header')
+          let inner = document.createElement('div');
+          outer.shadowRoot.append(inner);
+
+          document.addEventListener('res_error', event => alert(event.detail));
+
+          inner.dispatchEvent(new CustomEvent('res_error', {
+            bubbles: true,
+            composed: true,
+            detail: "ERROR OCCURED, We could not apply this analysis because: " + e.detail.response.output
+          }));
+        } else if (response.type == 'suggest') {
+          var manualSuggestList = response.manual_result;
+          var crowdSuggestList = response.crowd_result;
+          var analysesList = response.all_analysis;
+          console.log(manualSuggestList);
+          self.numberOfStepsSuggest += 1;
+          var suggestElement = document.createElement('suggest-panel');
+          suggestElement.setAttribute('id', 'suggest-panel-' + self.numberOfStepsSuggest);
+          suggestElement.setAttribute('manual-suggest-list', JSON.stringify(manualSuggestList));
+          suggestElement.setAttribute('crowd-suggest-list', JSON.stringify(crowdSuggestList));
+          suggestElement.setAttribute('all-analysis-list', JSON.stringify(analysesList));
+          
+          console.log('getting element app-header suggest');
+          self.shadowRoot.getElementById('app-header').appendChild(suggestElement);
+          // self.dataframeList.push("suggest-panel-"+self.numberOfSteps);
+          self.allTabsList.push(suggestElement);
+          setTimeout(function () {
+            suggestElement.scrollIntoView();
+          }, 100);
+
+          console.log("Dataframe List: " + self.dataframeList);
+
+        } else if (response.type == 'shuffle-split' || response.type == 'fit-decision-tree' ||
+          response.type == "predict-test") {
+          var result = response.result;
+          console.log(result);
+          //self.numberOfSteps - id for each intermediate dataframe
+          var analysisTab = document.createElement('analysis-tab');
+          console.log("Number of steps: " + self.numberOfSteps);
+          self.numberOfSteps += 1;
+
+          analysisTab.setAttribute('id', 'analysis-tab-' + self.numberOfSteps);
+          analysisTab.setAttribute('type', response.type);
+          analysisTab.setAttribute('result', JSON.stringify(result));
+          analysisTab.setAttribute('output', response.output);
+
+          console.log('getting element app-header shuffle-splot/ fit-decision-tree');
+          self.shadowRoot.getElementById('app-header').appendChild(analysisTab);
+
+          self.allTabsList.push(analysisTab);
+
+          this.push('dataframeList', self.numberOfSteps);
+          console.log("Dataframe List: " + "analysis-tab-" + self.dataframeList);
+
+          this._sendComputeRequest(this.selectedDataset, response.type, 'suggest');
+          setTimeout(function () {
+            analysisTab.scrollIntoView();
+          }, 100);
+        }
+        else {
+          var result = [];
+          if (typeof (response.result) == 'string') {
+            result.push(JSON.parse(response.result));
+          } else {
+            response.result.forEach(function (element) {
+              result.push(window.btoa(window.atob(element)));
+            });
+          }
+          console.log(result);
+          var analysisTab = document.createElement('analysis-tab');
+          self.numberOfSteps += 1;
+          analysisTab.setAttribute('id', 'analysis-tab-' + self.numberOfSteps);
+          analysisTab.setAttribute('type', response.type);
+          analysisTab.setAttribute('result', JSON.stringify(result));
+          analysisTab.setAttribute('output', response.output);
+          analysisTab.setAttribute('description', response.description);
+          analysisTab.setAttribute('code', response.code);
+          analysisTab.setAttribute('chosen', JSON.stringify(response.chosen_analysis));
+          //analysisTab.setAttribute('chosen', response.chosen_analysis);
+
+          console.log('getting element app-header else');
+          self.shadowRoot.getElementById('app-header').appendChild(analysisTab);
+
+          self.allTabsList.push(analysisTab);
+          this.push('dataframeList', "analysis-tab-" + self.numberOfSteps);
+          console.log("Dataframe List: " + self.dataframeList);
+
+          this._sendComputeRequest(this.selectedDataset, response.type, 'suggest');
+          setTimeout(function () {
+            analysisTab.scrollIntoView();
+          }, 100);
+        }
+      }
+
+      //handles dataframe dropdown selection
+      dataframeChanged(e) {
+        //debugger;
+        console.log('dataframeChanged');
+
+        console.log("sending intermediate request");
+        this.selectedDataframe = e.detail.value;
+        var intermediate_idx = this.selectedDataframe;
+
+        if(this.selectedDataframe == null) {
+          console.log('selectedDataFrame is null')
+        }
+
+        console.log('getting element selectedDataFrame');
+        var selected_tab = this.shadowRoot.getElementById(this.selectedDataframe);
+
+        //gets output dataframe from selected analysis tab
+        var frame_data = selected_tab.output;
+        console.log("JSON DATA");
+        console.log(frame_data);
+        console.log("TYPE: ");
+
+        //Retrieves output dataframe of selected analysis tab
+        var converted = JSON.parse(frame_data);
+        console.log(converted.data);
+
+        // var analysis_recommendations = this.shadowRoot.getElementById("suugest-panel-"+this.numberOfSteps);
+
+        console.log('getting element calculateIntermediateRequest');
+        var requestElement = this.shadowRoot.getElementById("calculateIntermediateRequest");
+
+        console.log("Chosen Analysis");
+        console.log(this.selectedSuggestAnalysis);
+
+        requestElement.params = {
+          index: intermediate_idx,
+          dataset: this.selectedDataset,
+          state: JSON.stringify(this.currentState),
+          dataframe: JSON.stringify(converted.data),
+          compute: this.selectedSuggestAnalysis
+        };
+        requestElement.generateRequest();
+      }
+
+      deleteDownstream(e) {
+        //debugger;
+
+        //first check if selected > 1 - if so then set timeout for x secs and delete from the all tabs list 
+        //check first here
+        //if true - delete tabs within a time out function here 
+        console.log('deleteDownstream: ', e.path[0])
+
+        var self = this;
+        var elementList = self.shadowRoot.querySelector('app-header-layout').children;
+        var tab_id = e.path[0].id;
+
+        console.log("TAB ID: " + tab_id);
+
+        var tab_num = parseInt(tab_id[tab_id.length - 1]);
+
+        console.log('getting element TABID');
+        var current_suggest_tab = this.shadowRoot.getElementById(tab_id);
+        console.log("TAB CHILDREN: " + current_suggest_tab.numberOfRecsSelected);
+
+        if (current_suggest_tab.numberOfRecsSelected > 1) {
+          var targetIdx = -1;
+
+          for (var i = 0; i < elementList.length; i++) {
+            if (elementList[i].id == e.path[0].id) {
+              targetIdx = i + 1;
+              break;
+            }
+          }
+          // remove all the following items
+          for (var i = elementList.length - 1; i >= targetIdx; i--) {
+            console.log(elementList);
+            console.log(elementList[targetIdx]);
+            elementList[targetIdx].remove();
+          }
+
+          var idList = e.path[0].id.split('-');
+          var index = idList[idList.length - 1];
+
+          // var recentSuggestTab = elementList[targetIdx - 1];
+          // recentSuggestTab.enableSuggestions();
+
+          // send a request to server to delete intermediate dataframe too!
+          console.log('getting element intermediateDataRequest');
+          var requestElement = this.shadowRoot.getElementById("intermediateDataRequest");
+          requestElement.params = {
+            index: index,
+            type: 'delete'
+          };
+          requestElement.generateRequest();
+        }
+      }
+
+      datasetChanged(e) {
+        //debugger;
+        console.log('datasetChanged');
+        this.uploadedData = false;
+
+        if (this.selectedDataset.length == 0) {
+          console.log('loading dataset for the first time');
+          this.selectedDataset = e.detail.value;
+          console.log(e.detail.value);
+
+          console.log('getting element dataLoadRequest');
+          var requestElement = this.shadowRoot.getElementById("dataLoadRequest");
+          requestElement.params = {
+            dataset: this.selectedDataset,
+            type: 'filepath'
+          };
+          
+          requestElement.generateRequest();
+          this._sendComputeRequest(this.selectedDataset, '', 'suggest');
+        } else {
+          this.selectedDataset = e.detail.value;
+
+          var elementList = this.shadowRoot.querySelector('app-header-layout').children;
+
+          for (var i = elementList.length - 1; i > 1; i--) {
+            elementList[(elementList.length - 1)].remove()
+          }
+
+          console.log('getting element intermediateDataRequest');
+          var requestElement = this.shadowRoot.getElementById("intermediateDataRequest");
+          requestElement.params = {
+            index: 1,
+            type: 'delete'
+          };
+          requestElement.generateRequest();
+
+          console.log('getting element dataLoadRequest');
+          var requestElement = this.shadowRoot.getElementById("dataLoadRequest");
+          requestElement.params = {
+            dataset: this.selectedDataset,
+            type: "filepath"
+          };
+          requestElement.generateRequest();
+
+          this._sendComputeRequest(this.selectedDataset, '', 'suggest');
+        }
+
+      }
+
+      suggestionSelected(e) {
+        //debugger;
+        console.log('suggestionsSelected');
+
+        var sValue = e.detail.value;
+
+        console.log('suggestionsSelected Value: ' + e.detail.value)
+        // console.log('suggestionsSelected Type: ' + e.detail.type)
+
+        console.log(e)
+
+        if (sValue) {
+          this.selectedSuggestAnalysis = e.detail.value;
+
+          this._sendComputeRequest(this.selectedDataset, '', this.selectedSuggestAnalysis);
+        }
+      }
+
+      dataLoadedResponse(e) {
+        // this.selectedDataset = 'uploadedData.csv';
+        // this._sendComputeRequest(this.selectedDataset, '', 'suggest');
+        console.log('Data Loaded');
+      }
+
+      removeAnalysisTab(e) {
+        //debugger;
+        console.log('removeAnalysisTab');
+
+        var self = this;
+        var elementList = this.shadowRoot.querySelector('app-header-layout').children;
+        var targetIdx = -1;
+
+        for (var i = 0; i < elementList.length; i++) {
+          if (elementList[i].id == e.path[0].id) {
+            targetIdx = i;
+            break;
+          }
+        }
+
+        // remove all the following items
+        for (var i = elementList.length - 1; i >= targetIdx; i--) {
+          elementList[targetIdx].remove();
+        }
+
+        var idList = e.path[0].id.split('-');
+        var index = idList[idList.length - 1];
+
+        var recentSuggestTab = elementList[targetIdx - 1];
+        recentSuggestTab.enableSuggestions();
+
+        // send a request to server to delete intermediate dataframe too!
+        console.log('getting element intermediateDataRequest in removeAnalysisTab');
+        var requestElement = this.shadowRoot.getElementById("intermediateDataRequest");
+        requestElement.params = {
+          index: index,
+          type: 'delete'
+        };
+        requestElement.generateRequest();
+      }
+
+      exportData(e) {
+        //debugger;
+        console.log('exportData');
+
+        var idList = e.path[0].id.split('-');
+        var index = idList[idList.length - 1];        // send a request to server to export intermediate dataframe
+        console.log('getting element intermediateDataRequest in exportData');
+        var requestElement = this.shadowRoot.getElementById("intermediateDataRequest");
+        requestElement.params = {
+          index: index,
+          type: 'export'
+        };
+        requestElement.generateRequest();
+      }
+
+      clickOnAttribute(e) {
+        //debugger;
+        console.log('clickOnAttribute');
+
+        var element_id = e.target.id;
+        this.selectedSuggestAnalysis = element_id.substring(element_id.indexOf('-') + 1);
+
+        this._sendComputeRequest(this.selectedDataset, '', this.selectedSuggestAnalysis);
+      }
+
+      // feature selection event listener
+      featureSelected(e) {
+        //debugger;
+        console.log('featureSelected');
+
+        console.log('getting element dropdown-feature-selection in featureSelected');
+        var featureDropdown = this.shadowRoot.getElementById("dropdown-feature-selection");
+        
+        console.log('getting element dropdown-target-selection in featureSelected');
+        var targetDropdown = this.shadowRoot.getElementById("dropdown-target-selection");
+
+        var features_list = [];
+        featureDropdown['value'].split(',').forEach(function (feature) {
+          features_list.push(feature.trim());
+        });
+
+        var state = {
+          'features': features_list,
+          'target': targetDropdown['value']
+        };
+        this.currentState = state;
+
+        this._sendComputeRequest(this.selectedDataset, state, 'scatterplot-regression');
+
+      }
+
+      downloadCSV(responseData) {
+        //debugger;
+        console.log('downloadCSV');
+
+        var data, filename, link;
+        var csv = this._convertArrayOfObjectsToCSV({
+          data: responseData
+        });
+        if (csv == null) return;
+
+        filename = 'export.csv';
+
+        if (!csv.match(/^data:text\/csv/i)) {
+          csv = 'data:text/csv;charset=utf-8,' + csv;
+        }
+        data = encodeURI(csv);
+
+        link = document.createElement('a');
+        link.setAttribute('href', data);
+        link.setAttribute('download', filename);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      _convertArrayOfObjectsToCSV(args) {
+        var result, ctr, keys, columnDelimiter, lineDelimiter, data;
+
+        data = args.data || null;
+        if (data == null || !data.length) {
+          return null;
+        }
+
+        columnDelimiter = args.columnDelimiter || ',';
+        lineDelimiter = args.lineDelimiter || '\n';
+
+        keys = Object.keys(data[0]);
+
+        result = '';
+        result += keys.join(columnDelimiter);
+        result += lineDelimiter;
+
+        data.forEach(function (item) {
+          ctr = 0;
+          keys.forEach(function (key) {
+            if (ctr > 0) result += columnDelimiter;
+
+            result += item[key];
+            ctr++;
+          });
+          result += lineDelimiter;
+        });
+
+        return result;
+      }
+
+      _sendExportRequest() {
+
+      }
+
+      _sendComputeRequest(dataset, state, computeType) {
+        //debugger;
+
+        if (this.uploadedData){
+          dataset = "uploadedData";
+        }
+
+        // send out the request for list of datasets
+        console.log('sendComputeRequest requesting ID');
+        var requestElement = this.shadowRoot.getElementById("computeRequest");
+        console.log("This is the state:" + state);
+        this.currentState = state;
+        console.log("This is the current state: " + this.currentState);
+
+        console.log('analysis tab in sendComputeRequest')
+        //get most recent analysis tab
+        var selected_tab = this.shadowRoot.getElementById("analysis-tab-" + this.numberOfSteps);
+
+        //gets output dataframe from selected analysis tab
+        var next_frame_data = null;
+        var converted_next_frame = null;
+
+        //if selected tab null - means there has been no analysis tabs generated yet...or some other error
+        //NOTE: this is a bug 
+        if (selected_tab !== null) {
+          //grab the output dataframe from most recent tab
+          next_frame_data = selected_tab.output;
+          console.log("JSON DATA");
+          console.log(next_frame_data)
+          console.log("TYPE: ");
+
+          //Retrieves output dataframe of selected analysis tab
+          converted_next_frame = JSON.parse(next_frame_data);
+          console.log("success intermediate frame sent");
+        }
+
+
+        // console.log(typeof this.numberOfSteps);
+
+        if (converted_next_frame === null) {
+          converted_next_frame = {};
+          converted_next_frame['data'] = "null";
+          // converted_next_frame = JSON.parse(converted_next_frame); 
+        }
+
+        console.log("Current Dataframe:")
+        console.log(converted_next_frame.data)
+        var steps = this.numberOfSteps;
+
+        requestElement.params = {
+          dataset: dataset,       //'uploaded'
+          state: JSON.stringify(state),       // ''
+          dataframe: JSON.stringify(converted_next_frame.data),
+          compute: computeType,           //'suggest'
+          steps: steps
+        };
+        requestElement.generateRequest();
+      }
+
+    }
+
+    window.customElements.define(MainApp.is, MainApp);
+  </script>
+</dom-module>

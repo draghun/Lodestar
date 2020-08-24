@@ -1,0 +1,391 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+
+<link rel="import" href="../../bower_components/neon-animation/web-animations.html">
+
+<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
+
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+
+<link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
+
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+
+<link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
+
+<dom-module id="suggest-panel">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+
+            iron-selector {
+                padding: 8px;
+            }
+
+            .iron-selected {
+                background-color: var(--google-blue-500);
+                color: white;
+            }
+
+            paper-dropdown-menu {
+                width: 500px;
+            }
+
+            paper-listbox {
+                max-height: 400px;
+                width: 500px;
+            }
+
+            paper-icon-item,
+            paper-item.item-custom {
+                max-width: 500px;
+
+                --paper-item-focused-before: {
+                    background-color: var(--paper-blue-200);
+                    color: white;
+                }
+
+                ;
+            }
+
+            paper-item.item-custom:hover {
+                background-color: var(--paper-blue-100);
+            }
+
+            paper-item.item-custom[active] {
+                background-color: var(--paper-blue-100);
+            }
+
+            paper-item.blue {
+                background-color: var(--paper-blue-500);
+                color: white;
+
+                --paper-item-raised-keyboard-focus: {
+                    background-color: var(--paper-blue-200) !important;
+                    color: white !important;
+                }
+
+                ;
+            }
+
+            paper-button.button-custom {
+
+                /* These could also be individually defined for each of the
+                specific css classes, but we'll just do it once as an example */
+                --paper-button-flat-keyboard-focus: {
+                    background-color: var(--paper-blue-200);
+                    color: white;
+                }
+
+                ;
+
+                --paper-button-raised-keyboard-focus: {
+                    background-color: var(--paper-blue-200);
+                    color: white;
+                }
+
+                ;
+            }
+
+            paper-button.button-custom:hover {
+                background-color: var(--paper-blue-100);
+            }
+
+            paper-button.button-custom[active] {
+                background-color: var(--paper-blue-100);
+            }
+
+            paper-button.blue {
+                background-color: var(--paper-blue-500);
+                color: white;
+
+                --paper-button-raised-keyboard-focus: {
+                    background-color: var(--paper-blue-200) !important;
+                    color: white !important;
+                }
+
+                ;
+            }
+
+            paper-tooltip {
+                --paper-tooltip: {
+                    font-size: 14px;
+                }
+            }
+
+            #expert-suggest,
+            #crowd-suggest {
+                font-size: 14px;
+                border-bottom: 1px solid #dedede;
+                /* border-radius: 5px; */
+                margin-bottom: 5px;
+                font-family: "Segoe UI", Arial, sans-serif;
+                padding: 5px;
+            }
+
+            .allAnalysisList {
+                font-size: 14px;
+                /* margin-bottom: 3px; */
+                font-family: "Segoe UI", Arial, sans-serif;
+
+            }
+
+            .suggest-collapse-button {
+                background-color: black;
+                /* border: 1px solid #dedede; */
+                border-radius: 5px;
+                font-size: 14px;
+                cursor: pointer;
+                -webkit-tap-highlight-color: var(--paper-blue-500);
+                text-align: center;
+                display: block;
+                color: white;
+            }
+        </style>
+        <paper-button id="trigger-0" class="trigger suggest-collapse-button" on-click="groupToggle"
+            aria-expanded$="[[opened]]">
+            <iron-icon icon="icons:menu"></iron-icon>
+            [[_updateTabText(selectedAnalysis)]]
+        </paper-button>
+        <iron-collapse id="collapse-0" opened="opened">
+
+            <div id="expert-suggest">
+                Expert Recommendations
+                <template id="manualSuggestGroup" is="dom-repeat" items="{{_sanitizeSuggestItems(manualSuggestList)}}">
+                    <paper-button toggles raised class="button-custom" id="suggestexpert-[[item.name]]"
+                        on-click="clickOnAttribute">{{item.name}}, {{item.color}}
+                    </paper-button>
+                    <paper-tooltip for="suggestexpert-[[item.name]]">{{item.description}}</paper-tooltip>
+                </template>
+            </div>
+
+            <div id="crowd-suggest">
+                Crowd Recommendations
+                <template id="crowdSuggestGroup" is="dom-repeat" items="{{_sanitizeSuggestItems(crowdSuggestList)}}">
+                    <paper-button toggles raised class="button-custom" id="suggestcrowd-[[item.name]]"
+                        on-click="clickOnAttribute">{{item.name}}, {{item.color}}
+                    </paper-button>
+                    <paper-tooltip for="suggestcrowd-[[item.name]]">{{item.description}}</paper-tooltip>
+                </template>
+            </div>
+
+            <div class="allAnalysisList">
+                Analysis Library
+                <paper-dropdown-menu id="all-analysis-dropdown" label="Select Analysis" vertical-offset="50" vertical-align="bottom">
+                    <paper-listbox slot="dropdown-content" attr-for-selected="id"
+                        on-selected-changed="suggestionSelected">
+                        <template is="dom-repeat" items="[[_sanitizeAllAnalysisItems(allAnalysisList)]]" as="item">
+                            <paper-item class="item-custom" label="[[item.name]]" id="allanalysis-[[item.name]]">
+                                {{item.name}}
+                            </paper-item>
+                            <paper-tooltip for="allanalysis-[[item.name]]">{{item.description}}</paper-tooltip>
+                        </template>
+                    </paper-listbox>
+                </paper-dropdown-menu>
+            </div>
+            <iron-collapse id="collapse-[[type]]" opened="opened">
+
+    </template>
+
+    <script>
+        /**
+         * @customElement
+         * @polymer
+         */
+        class SuggestPanel extends Polymer.Element {
+            static get is() { return 'suggest-panel'; }
+            static get properties() {
+                return {
+                    numberOfRecsSelected: {
+                        type: Number,
+                        value: 0,
+                        notify: true
+                    },
+                    manualSuggestList: {
+                        type: Array,
+                        value: [],
+                        notify: true
+                    },
+
+                    crowdSuggestList: {
+                        type: Array,
+                        value: [],
+                        notify: true
+                    },
+
+                    allAnalysisList: {
+                        type: Array,
+                        value: [],
+                        notify: true
+                    },
+
+                    selectedAnalysis: {
+                        type: String,
+                        value: "",
+                        notify: true
+                    }
+
+                };
+            }
+
+            static get observers() {
+                return [
+                    '_dataChanged(manualSuggestList, crowdSuggestList, allAnalysisList)'
+                ]
+            }
+
+            _dataChanged(manualSuggestList, crowdSuggestList, allAnalysisList) {
+                this.manualSuggestList = manualSuggestList;
+                this.crowdSuggestList = crowdSuggestList;
+                console.log(this.crowdSuggestList);
+                this.allAnalysisList = allAnalysisList;
+            }
+
+            _sanitizeSuggestItems(itemList) {
+                var sanitizedList = itemList.slice(0, 5).map(element => {
+                    return {
+                        'name': element['name'],
+                        'color': element['probability'],
+                        'description': element['description']
+                    };
+                });
+                return sanitizedList;
+            }
+
+            _sanitizeAllAnalysisItems(itemList) {
+                var sanitizedList = itemList.map(element => {
+                    return {
+                        'name': element['name'],
+                        'description': element['description']
+                    };
+                });
+                return sanitizedList;
+            }
+
+            suggestionSelected(e) {
+                var sValue = e.detail.value;
+                var self = this;
+
+                if (sValue) {
+                    var selectedAnalysis = e.detail.value;
+                    self.selectedAnalysis = selectedAnalysis.substring(selectedAnalysis.indexOf('-') + 1);
+
+                    self.numberOfRecsSelected = self.numberOfRecsSelected + 1;
+
+                    self.dispatchEvent(new CustomEvent('delete-downstream', { bubbles: true, composed: true, detail: { value: self } }))
+
+                    self.dispatchEvent(new CustomEvent('selected-analysis', { bubbles: true, composed: true, detail: { value: self.selectedAnalysis } }));
+                }
+            }
+
+            enableSuggestions() {
+                var self = this;
+                self.selectedAnalysis = "";
+                self._enableDropdownDictionary();
+                self._enableSuggestButtons();
+            }
+
+            //when clicked on - gets id
+            clickOnAttribute(e) {
+                console.log(e.target.id);
+                
+                var element_id = e.target.id;
+                var self = this;
+
+                self.selectedAnalysis = element_id.substring(element_id.indexOf('-') + 1);
+
+                console.log(this.selectedAnalysis);
+                self.numberOfRecsSelected = self.numberOfRecsSelected + 1;
+
+                //event to handle deletion of downstream tabs
+                self.dispatchEvent(new CustomEvent('delete-downstream', { bubbles: true, composed: true, detail: { value: self } }))
+
+                self.dispatchEvent(new CustomEvent('selected-analysis', { bubbles: true, composed: true, detail: { value: self.selectedAnalysis } }));
+
+                // reset buttons
+                self._enableSuggestButtons();
+                var element = this.shadowRoot.getElementById(element_id);
+                element.setAttribute("active", true);
+
+            }
+
+            _disableSuggestButtons(element_id) {
+                // var expertSuggestButtons = this.shadowRoot.getElementById('expert-suggest').children;
+                // var crowdSuggestButtons = this.shadowRoot.getElementById('crowd-suggest').children;
+
+                // // disable manual suggested analysis buttons
+                // for (var i = 0; i < expertSuggestButtons.length; i++) {
+                //     var element = expertSuggestButtons[i];
+                //     if (element['id'] != element_id && element.nodeName.indexOf("PAPER-BUTTON") != -1) {
+                //         element.setAttribute("disabled", true);
+                //     }
+                // }
+
+                // // disable crowd suggested analysis buttons
+                // for (var i = 0; i < crowdSuggestButtons.length; i++) {
+                //     var element = crowdSuggestButtons[i];
+                //     if (element['id'] != element_id && element.nodeName.indexOf("PAPER-BUTTON") != -1) {
+                //         element.setAttribute("disabled", true);
+                //     }
+                // }
+            }
+
+            _disableDropdownDictionary() {
+                // var analysisDictDropdown = this.shadowRoot.getElementById('all-analysis-dropdown');
+                // analysisDictDropdown.setAttribute('disabled', true);
+            }
+
+            _enableSuggestButtons() {
+                var expertSuggestButtons = this.shadowRoot.getElementById('expert-suggest').children;
+                var crowdSuggestButtons = this.shadowRoot.getElementById('crowd-suggest').children;
+
+                // enable manual suggested analysis buttons
+                for (var i = 0; i < expertSuggestButtons.length; i++) {
+                    var element = expertSuggestButtons[i];
+                    element.removeAttribute("disabled");
+                    element.removeAttribute("active");
+                }
+
+                // disable crowd suggested analysis buttons
+                for (var i = 0; i < crowdSuggestButtons.length; i++) {
+                    var element = crowdSuggestButtons[i];
+                    element.removeAttribute("disabled");
+                    element.removeAttribute("active");
+                }
+            }
+
+            _enableDropdownDictionary() {
+                var analysisDictDropdown = this.shadowRoot.getElementById('all-analysis-dropdown');
+                analysisDictDropdown.removeAttribute('disabled');
+            }
+
+            _updateTabText(selectedAnalysis) {
+                if (selectedAnalysis) {
+                    return "Analysis " + selectedAnalysis + " Selected!";
+                } else {
+                    return "Select an Analysis";
+                }
+            }
+
+            groupToggle(e) {
+                this.shadowRoot.querySelector("#collapse-0").toggle();
+            }
+
+        }
+
+        window.customElements.define(SuggestPanel.is, SuggestPanel);
+    </script>
+</dom-module>

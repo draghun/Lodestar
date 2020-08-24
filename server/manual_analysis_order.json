@@ -1,0 +1,99 @@
+[
+    {
+        "tutorial-name": "Inferential Statistics",
+        "url": "https://machinelearningmastery.com/calculate-bootstrap-confidence-intervals-machine-learning-results-python/",
+        "analysis-order": [
+            "group-statistics",
+            "ANOVA-Variance-Analysis",
+            "bootstrap",
+            "category-boxplot"
+        ]
+    },
+    {
+        "tutorial-name": "Hypothesis Testing with ANOVA in Python",
+        "url": "https://codingdisciple.com/hypothesis-testing-ANOVA-python.html",
+        "analysis-order": [
+            "first10samples",
+            "category-count",
+            "ANOVA-Variance-Analysis"
+        ]
+    },
+    {
+        "tutorial-name": "Statistical Analysis in Python",
+        "url": "https://github.com/briandconnelly/BEACONToolkit/blob/master/analysis/scripts/Data%20Analysis%20in%20Python.ipynb",
+        "analysis-order": [
+            "first10samples",
+            "drop-NaN-rows",
+            "group-statistics",
+            "mean",
+            "variance",
+            "ranksum-test",
+            "ANOVA-Variance-Analysis"
+        ]
+    },
+    {
+        "tutorial-name": "Predicting Boston Housing Prices",
+        "url": "https://github.com/sajal2692/data-science-portfolio/blob/master/boston_housing/boston_housing.ipynb",
+        "analysis-order": [
+            "group-statistics",
+            "scatterplot-regression",
+            "shuffle-split",
+            "fit-decision-tree",
+            "predict-test"
+        ]
+    },
+    {
+        "tutorial-name": "Election Poll Data Analysis",
+        "url": "https://github.com/sajal2692/data-science-portfolio/blob/master/2016%20General%20Election%20Poll%20Analysis.ipynb",
+        "analysis-order": [
+            "first10samples",
+            "category-count",
+            "distribution-quantitative-category",
+            "group-statistics",
+            "numerical-boxplot",
+            "correlation-heatmap",
+            "distribution-quantitative-category"
+        ]
+    },
+    {
+        "tutorial-name": "Exploratory Data Analysis (EDA) and Data Visualization with Python",
+        "url": "https://kite.com/blog/python/data-analysis-visualization-python",
+        "analysis-order": [
+            "first10samples",
+            "group-statistics",
+            "category-count",
+            "distribution-numerical",
+            "numerical-boxplot",
+            "correlation-heatmap",
+            "distribution-quantitative-category"
+        ]
+    },
+    {
+        "tutorial-name": "Titanic Dataset: Exploratory Data Analysis",
+        "url": "https://github.com/sajal2692/data-science-portfolio/blob/master/Titanic%20Dataset%20-%20Exploratory%20Analysis.ipynb",
+        "analysis-order": [
+            "first10samples",
+            "group-statistics",
+            "category-count",
+            "distribution-two-categories",
+            "distribution-numerical",
+            "stack-facetgrid",
+            "distribution-quantitative-category"
+        ]
+    },
+    {
+        "tutorial-name": "Detailed exploratory data analysis with python",
+        "url": "https://www.kaggle.com/ekami66/detailed-exploratory-data-analysis-with-python",
+        "analysis-order": [
+            "first10samples",
+            "group-statistics",
+            "drop-NaN-columns",
+            "distribution-numerical",
+            "correlation",
+            "correlation-heatmap",
+            "scatterplot-regression",
+            "category-boxplot",
+            "distribution-quantitative-category"
+        ]
+    }
+]

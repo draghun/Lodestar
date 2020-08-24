@@ -1,0 +1,23 @@
+{
+  "name": "lodestar",
+  "main": "index.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "iron-ajax": "PolymerElements/iron-ajax#2.1.3",
+    "paper-dropdown-menu": "2.1.0",
+    "paper-listbox": "2.1.0",
+    "web-animations-js": "web-animations/web-animations-js#^2.3.1",
+    "data-filter": "epiviz/data-filter#^2.0.1",
+    "yo-file-uploader": "michael-silva/yo-file-uploader#^0.0.4",
+    "isw-dropdown-menu": "IswPolymerElements/isw-dropdown-menu#^1.0.16",
+    "iron-pages": "2.1.1",
+    "paper-tabs": "2.1.1",
+    "paper-tooltip": "2",
+    "app-layout": "PolymerElements/app-layout#2",
+    "paper-input": "PolymerElements/paper-input#2.0-preview"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+  }
+}

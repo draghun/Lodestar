@@ -1,0 +1,437 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../../bower_components/data-filter/data-filter.html">
+
+<link rel="import" href="../../bower_components/paper-tabs/paper-tabs.html">
+
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../../bower_components/paper-menu-button/paper-menu-button.html">
+
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+
+<!-- code highlight using highlight.js theme -->
+
+<dom-module id="analysis-tab">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+
+            iron-selector>* {
+                padding: 8px;
+            }
+
+            .iron-selected {
+                background-color: var(--google-blue-500);
+                color: white;
+            }
+
+            img {
+                width: 480px;
+                height: 360px;
+            }
+
+            .img-list {
+                display: flex;
+                overflow-x: scroll;
+                background-color: white;
+            }
+
+            #analysis-results,
+            #code-output {
+                background-color: white;
+                color: black;
+            }
+
+            data-filter {
+                background-color: white;
+                color: black;
+            }
+
+            :host([opened]) .trigger {
+                border-bottom-left-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+
+            .show-hide-button {
+                padding: 1px;
+                background-color: #f3f3f3;
+                /* border: 1px solid #dedede; */
+                border-radius: 5px;
+                font-size: 14px;
+                cursor: pointer;
+                -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+                text-align: center;
+                display: block;
+            }
+
+            .results,
+            #chosen-analysis,
+            #analysis-description {
+                font-size: 16px;
+                border-top: 1px solid #dedede;
+                font-family: "Segoe UI", Arial, sans-serif;
+                padding: 8px;
+                background-color: white;
+                color: black;
+            }
+
+            #code-script {
+                font-size: 16px;
+                border-top: 1px solid #dedede;
+                padding: 8px;
+                font-family: "Segoe UI", Arial, sans-serif;
+                background-color: white;
+                color: black;
+                white-space: pre-wrap;
+            }
+
+            .image-container {
+                position: relative;
+                width: 100%;
+                max-width: 480px;
+                padding: 8px;
+                border: thick solid rgb(226, 225, 225);
+            }
+
+            .image-container:hover {
+                background-color: var(--google-blue-500);
+            }
+
+            .image-container img {
+                width: 480px;
+                height: auto;
+            }
+
+            .download-image-button {
+                position: absolute;
+                top: 90%;
+                left: 93%;
+                transform: translate(-50%, -50%);
+                -ms-transform: translate(-50%, -50%);
+            }
+
+            paper-tooltip {
+                --paper-tooltip: {
+                    font-size: 14px;
+                }
+            }
+
+        </style>
+        <paper-button id="trigger-[[type]]" class="trigger show-hide-button" on-click="groupToggle"
+            aria-expanded$="[[opened]]">
+            <iron-icon icon="icons:menu"></iron-icon>
+            [[type]] Results (Click to Collapse/Expand)
+            <paper-icon-button src="../../icons/delete.png" title="delete" on-click="deleteTab">
+            </paper-icon-button>
+        </paper-button>
+        <iron-collapse id="collapse-[[type]]" opened="opened">
+            <paper-tabs selected="{{selectedTab}}" attr-for-selected='tab-type'>
+
+                <paper-tab id="analysis-results-tab" tab-type="results">Analysis Results</paper-tab>
+                <paper-tooltip for="analysis-results-tab" position="left">See the results of your curent analysis</paper-tooltip>
+
+                <paper-tab id="analysis-dataframe-tab" tab-type="output">Output Data Frame
+                    <paper-icon-button src="../../icons/export.png" title="delete" on-click="exportData">
+                    </paper-icon-button>
+                </paper-tab>
+                <paper-tooltip for="analysis-dataframe-tab" position="left">See the outputted data frame</paper-tooltip>
+
+                <paper-tab id="analysis-code-tab" tab-type="code">Code Script
+                    <paper-icon-button src="../../icons/export.png" title="export-code" on-click="_downloadText">
+                    </paper-icon-button>
+                </paper-tab>
+                <paper-tooltip for="analysis-code-tab" position="left">See the code that was run by the analysis</paper-tooltip>
+
+                <paper-tab id="analysis-description-tab" tab-type="description">What's this analysis?</paper-tab>
+                <paper-tooltip for="analysis-description-tab" position="left">See the description of the analysis</paper-tooltip>
+
+                <paper-tab id="analysis-progress-tab" tab-type="chosen">Analyses progress</paper-tab>
+                <paper-tooltip for="analysis-progress-tab" position="left">See the progress through all your analyses</paper-tooltip>
+
+            </paper-tabs>
+
+            <iron-pages class="results" selected="{{selectedTab}}" attr-for-selected='page-type'>
+                <div page-type="results" id="analysis-results"></div>
+                <div page-type="output" id="code-output"></div>
+                <div page-type="code" id="code-script">
+                    <code-sample><template id="code-template" preserve-content>
+                        </template></code-sample>
+                </div>
+                <div page-type="description" id="analysis-description"></div>
+                <div page-type="chosen" id="chosen-analysis"></div>
+            </iron-pages>
+        </iron-collapse>
+
+    </template>
+
+    <script>
+        /**
+         * @customElement
+         * @polymer
+         */
+        class AnalysisTab extends Polymer.MutableData(Polymer.Element) {
+            static get is() { return 'analysis-tab'; }
+            static get properties() {
+                return {
+
+                    selectedTab: {
+                        type: String,
+                        value: "results",
+                        notify: true
+                    },
+
+                    type: {
+                        type: String,
+                        value: ""
+                    },
+
+                    result: {
+                        type: Array,
+                        value: []
+                    },
+
+                    output: {
+                        type: String,
+                        value: ""
+                    },
+
+                    description: {
+                        type: String,
+                        value: ""
+                    },
+
+                    chosen: {
+                        type: String,
+                        value: ""
+                    },
+
+                    code: {
+                        type: String,
+                        value: ""
+                    },
+
+                    outputAnalysesType: {
+                        type: Object,
+                        value: {
+                            'image': new Set(['stack-facetgrid', 'category-boxplot', 'correlation-heatmap',
+                                'distribution-two-categories', 'distribution-quantitative-category', 'scatterplot-regression',
+                                'numerical-boxplot', 'category-count', 'distribution-quantitative', 'probability-density-plot',
+                                'logistic-regression', 'plot-via-limit', 'quantitative-bar-plot', 'demo-mat-show', 'plot']),
+                            'table': new Set(['group-statistics', 'drop-NaN-columns', 'top5categories', 'correlation',
+                                'first10samples', 'mean', 'variance', 'drop-NaN-rows', 'ranksum-test', 'ANOVA-Variance-Analysis', 'bootstrap',
+                                'matrix-norm', 'eval-model-predictions', 'random-forest-classifier', 'compute-percentiles-range', 'test-linear-regression',
+                                'random-forest-classifier', 'compute-percentiles-range', 'compute-covariance-matrix', 'compute-sparse-linearsystem',
+                                'decision-tree-classifier', 'demo-hstack', 'extra-trees-classifier', 'unique-column-values', 'demo-log-space', 'outer-join',
+                                'conditional-frequence-distribution', 'initialize-kmeans-cluster', 'decision-tree-regressor', 'outer-join', 'word-to-vec']),
+                            'text': new Set(['shuffle-split', 'fit-decision-tree', 'predict-test'])
+                        }
+                    }
+
+                };
+            }
+
+            static get observers() {
+                return [
+                    '_resultChanged(type, result)',
+                    '_descriptionChanged(description)',
+                    '_outputChanged(output)',
+                    '_codeChanged(code)',
+                    '_chosenChanged(chosen)'
+                ]
+            }
+
+            _codeChanged(code) {
+                var targetElement = this.shadowRoot.querySelector('#code-script');
+                //targetElement.textContent = code;
+                targetElement.innerHTML = code;
+                this.code = code;
+                // console.log("CODE: " + code);
+            }
+
+            _outputChanged(output) {
+                this.output = output;
+                // console.log(output);
+
+                // format output (always a dataframe)
+                var data = JSON.parse(output);
+                var tableContents = data.data;
+                var newTableElement = document.createElement('data-filter');
+                newTableElement.setAttribute('data', JSON.stringify(tableContents));
+                newTableElement.setAttribute('id', this.type + '-output-table');
+
+                var targetElement = this.shadowRoot.querySelector('#code-output');
+                targetElement.appendChild(newTableElement);
+            }
+
+            _descriptionChanged(description) {
+                // format description (always text string)
+                var targetElement = this.shadowRoot.querySelector('#analysis-description');
+                targetElement.textContent = description;
+                this.description = description;
+            }
+
+            _chosenChanged(chosen_analysis) {
+                var targetElement = this.shadowRoot.querySelector('#chosen-analysis');
+
+                let chosen_string = chosen_analysis.slice(2, chosen_analysis.length - 2);
+                let chosen_list = chosen_string.split(",");
+
+                chosen_string = "";
+                let count = 1;
+                for (let i = 0; i < chosen_list.length; i++) {
+                    if (i === chosen_list.length - 1) {
+                        chosen_string += `${i + 1}. ${chosen_list[i]}`;
+                    }
+                    else { 
+                        chosen_string += `${i + 1}. ${chosen_list[i]} -> `;
+                    }
+                }
+
+                chosen_string = chosen_string.replace(/'/g, "");
+
+
+                //targetElement.textContent = chosen_analysis;
+                targetElement.textContent = chosen_string;
+                this.chosen_analysis = chosen_analysis;
+            }
+
+            _resultChanged(type, result) {
+
+                if (result == null || result.length == 0 || this.type == "") {
+                    var targetElement = this.shadowRoot.querySelector('#analysis-results');
+                    targetElement.textContent = "No results were available in this category. Please try others!";
+                    return;
+                }
+
+                this.type = type;
+
+                // format the results
+                if (this.outputAnalysesType['table'].has(type)) {
+
+                    var data = result[0];
+                    var tableContents = data.data;
+                    var newTableElement = document.createElement('data-filter');
+                    newTableElement.setAttribute('data', JSON.stringify(tableContents));
+                    newTableElement.setAttribute('id', type + '-table');
+
+                    // if (tableElement) {
+                    //     tableElement.setAttribute('data', JSON.stringify(tableContents));
+                    // } else {
+                    var targetElement = this.shadowRoot.querySelector('#analysis-results');
+                    targetElement.appendChild(newTableElement);
+                    // }
+
+                } else if (type == 'shuffle-split' || type == 'fit-decision-tree' || type == 'predict-test') {
+                    var data = result;
+                    var self = this;
+                    var results_div = this.shadowRoot.querySelector('#analysis-results');
+                    results_div.textContent = data;
+
+                } else if (type == 'ml-scatterplot-regression') {
+                    var data = result;
+                    // console.log(data);
+                    var self = this;
+                    var count = 0;
+
+                    data.forEach(function (image_element) {
+                        var newImageElement = document.createElement('img');
+
+                        newImageElement.setAttribute('src', "data:image/png;base64," + window.btoa(window.atob(image_element)));
+                        newImageElement.setAttribute('id', 'img-' + type + '-' + count);
+
+                        self.shadowRoot.appendChild(newImageElement);
+                    });
+
+                } else if (this.outputAnalysesType['image'].has(type)) {
+                    var data = result;
+                    var self = this;
+                    var count = 0;
+                    var newImageList = this.shadowRoot.querySelector('#analysis-results');
+                    newImageList.setAttribute('class', 'img-list');
+
+
+                    data.forEach(function (image_element) {
+                        var imageContainer = document.createElement('div');
+                        imageContainer.setAttribute('class', 'image-container');
+
+                        var newImageElement = document.createElement('img');
+
+                        newImageElement.setAttribute('src', "data:image/png;base64," + window.btoa(window.atob(image_element)));
+                        newImageElement.setAttribute('id', 'img-' + type + '-' + count);
+                        // add a download button to each image
+                        var downloadButton = document.createElement('paper-icon-button');
+                        downloadButton.setAttribute('src', '../../icons/download.png');
+                        downloadButton.setAttribute('title', 'download');
+                        downloadButton.setAttribute('class', 'download-image-button');
+
+                        downloadButton.setAttribute('id', 'download-' + type + '-' + count);
+
+                        downloadButton.addEventListener('click', self._downloadImage.bind(self));
+                        // newImageElement.appendChild(downloadButton);
+                        imageContainer.appendChild(newImageElement);
+                        imageContainer.appendChild(downloadButton);
+                        newImageList.appendChild(imageContainer);
+                    });
+
+                }
+            }
+
+            groupToggle(e) {
+                this.shadowRoot.querySelector("#collapse-" + this.type).toggle();
+            }
+
+            deleteTab(e) {
+                var self = this;
+                self.dispatchEvent(new CustomEvent('delete-analysis-cell', { bubbles: true, composed: true }));
+            }
+
+            exportData(e) {
+                var self = this;
+                self.dispatchEvent(new CustomEvent('export-data', { bubbles: true, composed: true }));
+            }
+
+            _downloadText(e) {
+                var text = this.code;
+                var element = document.createElement('a');
+                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                element.setAttribute('download', 'code.txt');
+
+                element.style.display = 'none';
+                document.body.appendChild(element);
+
+                element.click();
+
+                document.body.removeChild(element);
+            }
+
+            _downloadImage(e) {
+                var self = this;
+                // console.log(e);
+                var imageElementId = 'img-' + e.target.id.substring(e.target.id.indexOf("-") + 1);
+                var imageElement = self.shadowRoot.getElementById(imageElementId);
+                var element = document.createElement('a');
+                element.setAttribute('href', imageElement.src);
+                element.setAttribute('download', 'img.png');
+
+                element.style.display = 'none';
+                document.body.appendChild(element);
+
+                element.click();
+
+                document.body.removeChild(element);
+            }
+
+        }
+
+        customElements.define(AnalysisTab.is, AnalysisTab);
+    </script>
+</dom-module>
