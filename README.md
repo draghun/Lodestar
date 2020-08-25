@@ -1,3 +1,49 @@
+# Overview
+Keeping abreast of current trends, technologies, and best practices in statistics, visualization, and data analysis is becoming
+increasingly difficult even for professional data scientists, and is a hopeless endeavor for domain experts lacking time and training.
+
+We propose Lodestar, an interactive visualization sandbox that allows users to perform visual data analysis simply by
+selecting from a list of recommendations. Choosing a recommendation adds the corresponding Python code to the notebook and
+executes it, thus generating new output. The recommendation engine is inspired by autocomplete mechanisms, where a partial query is
+used to show suggestions for how to finish it. 
+
+In our implementation, we derive our recommendations from a directed graph of analysis
+states: one manually curated from online data science tutorials, another by automatically analyzing the Python code from a corpus of
+approximately 6,000 Jupyter notebooks on data science. We evaluated Lodestar through a two-phase evaluation sequence: a formative
+study guiding our next set of improvements to the tool, followed by a summative study assessing its utility for novice data scientists.
+
+# Structure
+Lodestar is developed as a web-application. The front-end is written in HTML, CSS, and JavaScript and developed using Polymer, a JavaScript library.  The back-end is written in Python and developed using Flask, a web-framework for Python. 
+
+The Pandas data analysis library is heavily used, especially for the Dataframe data structure. 
+
+
+## ```/src/``` 
+The ```/src/``` folder contains the front-end of the application. ```/src/main-app/``` contains three files that control the front-end display and logic. 
+
+```main-app.html``` contains the MainApp class and handles the HTML templating, CSS styling, and JavaScript functions throughout the front-end of the application.
+
+```analysis-tab``` contains the AnalysisTab class and handles HTML templating, CSS styling, and JavaScript functions for each notebook cell. 
+
+```suggest-panel``` contains the SuggestPanel class and handles HTML templating, CSS styling, and JavaScript functions related to the recommendation panel.
+
+## ```/server/``` 
+The ```/server/``` folder contains files for the back-end of the application. ```/server/src/``` contains three files that control much of the application's execution. 
+
+```run.py``` establishes the routes of the program and executes the Flask application. 
+
+```analysis.py``` contains the Analysis class, which primarily handles executing the selected analysis methods using codeblocks, and also handles deleting and exporting dataframes. 
+
+```recommender.py``` contains the Recommender class, which determines the expert and crowd recommendations given the current place in the data analysis process. 
+
+
+## ```/data/``` 
+The ```/data/``` folder contains the stored datasets that can be selected from the 'Select a Dataset' dropdown. If the user elects to upload their own dataset, this dataset is also stored in the ```/data/``` folder. 
+
+```cars.csv``` 
+
+```housing.csv``` from Pandas dataset collection
+
 # Lodestar Setup Instructions
 
 
@@ -62,6 +108,3 @@ To get it started do the following:
 To set up the Docker VM: 
 - You need to set the IP address of the backend to 0.0.0.0:5000 
 You need to be able to set up the front end to receive 0.0.0.0:5000 
-
-# Lodestar
-# Lodestar
