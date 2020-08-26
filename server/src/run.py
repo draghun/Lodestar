@@ -43,7 +43,7 @@ def scan_dataset():
 
 '''	
 Input Request:      dataset: string: Selected dataset	
-Description:        Load selected dataset into dataframe	
+Description:        Load selected dataset into dataframe to be used for analysis	
 Output Response:    None	
 '''
 @app.route('/dataload')
@@ -59,18 +59,22 @@ def data_load():
     chosen_analysis = []
 
     if (request.args["type"] == "upload"):
-        # print(request.args['dataset'].decode('ascii'))
         with open('../../data/uploadedData.csv', 'wb') as fp:
             fp.write(request.args['dataset'])
             print("Wrote into uploadedData.csv")
 
         data_read = pd.read_csv('../../data/uploadedData.csv')
-        #print(data_read.head())
     else:
         data_read = load_dataset(request.args['dataset'])
 
     return 'Data Loaded!'
 
+'''	
+Input Request:      None	
+Description:        The user selects what they want to compute. 
+                    If the chosen computation is a valid one, then it computes it and then outputs ____ 	
+Output Response:    unsure	
+'''
 @app.route('/compute')
 def compute():
     global chosen_analysis
@@ -103,18 +107,14 @@ def compute():
         if len(analysis.intermediate_df) != 0:
             analysis.current_df = analysis.intermediate_df[-1]
 
-        # print(analysis.current_df)
-        #chosen_analysis.append(request.args['compute'])
         chosen_analysis.append(str(request.args['compute']))
 
         result = analysis.execute_analysis(request.args['compute'], request.args['dataset'], request.args['state'])
         result['chosen_analysis'] = str(chosen_analysis)
-        #result['chosen_analysis'] = chosen_analysis
 
         return ujson.dumps(result)
 
-	'''	
-Input Request:      index: integer	
+'''	Input Request:      index: integer	
                         Index of the dataframe to be deleted/exported	
                     type: string	
                         Desired action on dataframe, either 'delete' or 'export'        	
@@ -142,6 +142,12 @@ def delete():
 
     return ujson.dumps(res)
 
+'''	
+Input Request:      None	
+Description:        Exports the notebook after it computes the user's selection. 
+                    Notebook gets downloaded into the user's computer
+Output Response:    unsure	
+'''
 @app.route('/export')
 def export():
     global chosen_analysis
@@ -162,7 +168,11 @@ def export():
 
     return ujson.dumps(res)
 
-
+'''	
+Input Request:      None	
+Description:        Adds headers 
+Output Response:    unsure	
+'''
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -170,9 +180,9 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
 
-	'''	
+'''	
 Input Parameters:   filename: string	
-                    Filename of dataset to be loaded	
+                        Filename of dataset to be loaded	
 Description:        Helper for data_load(). Load dataset into dataframe.	
 Output:             df: Pandas dataframe	
                     	Dataframe with dataset loaded onto it	

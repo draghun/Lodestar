@@ -1,4 +1,5 @@
-''' The Analysis class primarily handles executing the selected analysis methods using codeblocks, and also handles deleting and exporting dataframes.
+''' The Analysis class primarily handles executing the selected analysis methods using codeblocks, and also handles 
+    deleting and exporting dataframes.
 '''
 import matplotlib
 matplotlib.use('agg')
@@ -111,7 +112,7 @@ class Analysis():
         res['code'] = inspect.getsource(method_to_call)
 
         return res
-        
+
 '''
 Input Parameters:   filename: string
                         Filename of dataset to be loaded
@@ -123,8 +124,4 @@ def load_dataset(filename):
     data_path = os.path.join(os.path.dirname(
         os.path.abspath(__file__)) + '/../../data/', filename + ".csv")
     df = pd.read_csv(data_path)
-    # print "filename:"
-    # print filename
-    # print "uploadData.csv: "
-    # print df
     return df
