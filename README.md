@@ -67,7 +67,7 @@ Before continuing, we have to download Node & npm:
 
 We also want to install **Python 2.7**
 
-**Mac OS**: Python 2.7 comes preinstalled and is the default version for Mac OS (if you have an older Mac machine you may want to check to see you have this installed)
+**Mac OS**: Python 2.7 comes preinstalled and is the default version for Mac OS (if you have an older Mac machine you may want to check to see you have this installed). To check which version of python you have enter ```python``` into the terminal
 
 **Windows**: [Python Download - choose 2.7 release!](https://www.python.org/downloads/)
 
@@ -100,7 +100,9 @@ To get it started do the following:
 1. From root directory, navigate to `server/src` and run `python run.py`
     * This starts the Flask server. This ***must*** be started *before* client side is run!
 
-2.Navigate to root directory and run `polymer serve`
+2. In a separate window, navigate to root directory and run `polymer serve` to run the front end. Right now, both windows must be running at the same time.
+
+3. Copy the URL that appears after you run the front-end into a browser and now you should be running Lodestar!
 
 ##### Lodestar should now be running on localhost!
 
