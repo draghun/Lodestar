@@ -11,11 +11,11 @@ from analysis import Analysis
 crowd_analysis_order = 'new_crowd_analysis_order.json'
 
 class Recommender:
-  
+
     '''
     Input Parameters:   state: JSON string
-                            Current state of the application
-    Description:        Initialize fields
+                            Current state of the Lodestar application
+    Description:        Initialize fields of the object
     Output:             None
     '''
     def __init__(self, state=None):
@@ -181,8 +181,6 @@ class Recommender:
             if current_analysis in json_dict[i]["user-data"]["method"]:
                 current_id = json_dict[i]["id"]
 
-        # print('get_crowd_suggestions, current_id: ' + str(current_id))
-
         for notebook_id, tutorial_order in self.json_data.items():
             for index, step in enumerate(tutorial_order):
                 if current_analysis:
@@ -222,7 +220,6 @@ class Recommender:
 
         sorted_dict = sorted(suggestion_dict.items(), key=lambda kv: v[0], reverse=True)
         suggestions = [{'name': item[0], 'probability': item[1][0], 'description': item[1][1]}  for item in sorted_dict]
-        # print('get_crowd_suggestions: ' + str(suggestions))
 
         return suggestions
 
@@ -269,7 +266,7 @@ class Recommender:
                       ID of the codeblock
                   blocks: list
                       List of codeblocks   
-    Description:        For the given block id, get the ids of blocks with the same tags
+    Description:        For the given code block id, get the ids of blocks with the same tags
     Output:             List of strings containing IDs                                          
     '''
     # for the given block id, get the ids of blocks with the same tags
@@ -286,7 +283,6 @@ class Recommender:
     Description:        For the given block ID, get the IDs of blocks with the same tags
     Output:             List of strings containing IDs
     '''  
-    # for the given block id, get the ids of blocks with the same tags
     def retrieveExpertBlockIdsByBlockTags(self,blockId,blocks=None):
       blockId = str(blockId)
       tags = self.getTagsForBlockId(blockId,blocks)
@@ -300,7 +296,6 @@ class Recommender:
     Description:        For the given codeblock ID, retrieve the corresponding tags
     Output:             List of strings containing tags
     '''
-    # for the given block id, retrieve the corresponding tags
     def getTagsForBlockId(self,blockId,blocks=None):
       blockId = str(blockId)
       if not blocks:
@@ -330,7 +325,6 @@ class Recommender:
     Description:        Get the names of the codeblocks that match any of the tags
     Output:             List of strings containing codeblock names
     '''
-    # get the names of the blocks that match any of the tags
     def retrieveBlockNamesForTags(self, tags,blocks=None):
       idxs = self.retrieveBlockIdsForTags(tags,blocks)
       #print "indexes:",idxs
@@ -345,7 +339,6 @@ class Recommender:
     Description:        Get the identifiers of the codeblocks that match any of the tags
     Output:             List of strings containing IDs
     ''' 
-    # get the identifiers of the blocks that match any of the tags
     def retrieveBlockIdsForTags(self,tags,blocks=None):
       relevantIds = {}
       if not blocks:
@@ -354,7 +347,6 @@ class Recommender:
         for block in blocks:
           if tag in block["user-data"]["tags"]:
             relevantIds[block["id"]] = block
-      #print "indexes:",relevantIds.keys()
       return relevantIds.keys()
 
     '''
@@ -363,7 +355,6 @@ class Recommender:
     Output:             expertIds: dictionary
                             Dictionary containing expert IDs
     '''
-    # get all ids associated with expert recommendations
     def getExpertIds(self):
       allBlocks = self.openDictionary()
       #print "total blocks:",len(allBlocks)

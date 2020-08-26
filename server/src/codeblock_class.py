@@ -1,3 +1,5 @@
+'''The CodeBlock class contains codeblocks for analysis methods that users can select from recommendations or through the Analysis Library dropdown.
+''' 
 class CodeBlock:
 
     def load_dataset(self, filename):
@@ -258,9 +260,7 @@ class CodeBlock:
         df = loaded_dataset
 
         numerical_cols = df.select_dtypes(include='number').columns
-        """print(numerical_cols)"""
         category_cols = df.select_dtypes(include='object').columns
-        """print(category_cols)"""
 
         if len(category_cols) == 0 or len(numerical_cols) == 0:
             res = {
@@ -299,7 +299,6 @@ class CodeBlock:
 
         df = loaded_dataset
         category_df = df.select_dtypes(include='object')
-        """print(category_df)"""
 
         if category_df.empty == True:
             res = {
@@ -313,7 +312,6 @@ class CodeBlock:
         image_list = []
 
         category_df = category_df.dropna(axis='columns')
-        """print("new DF \n", category_df)"""
         for col in category_df:
             """check to make sure 'object' type is actually a string - assuming this is what is needed"""
             if is_string_dtype(category_df[col]) != True:
@@ -1381,7 +1379,6 @@ class CodeBlock:
         res = {}
         try:
             df = loaded_dataset
-            """ print ("DF ROWS: \n", df.shape[0])"""
             if (df.shape[0] < 2):
                 res = {
                     'output': "Dataframe has less than two rows",
