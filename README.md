@@ -104,8 +104,6 @@ To get it started do the following:
 
 3. Copy the URL that appears after you run the front-end into a browser and now you should be running Lodestar!
 
-##### Lodestar should now be running on localhost!
-
 
 To set up the Docker VM: 
 - You need to set the IP address of the backend to 0.0.0.0:5000 

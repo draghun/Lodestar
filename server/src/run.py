@@ -1,3 +1,6 @@
+'''Backend application runner	
+'''
+
 from flask import Flask, request, Response, send_file, jsonify
 
 import os
@@ -24,6 +27,11 @@ recommender = Recommender()
 data_read = pd.DataFrame()
 chosen_analysis = []
 
+'''	
+Input Request:      None	
+Description:        Returns list of stored datasets.	
+Output Response:    List containing stored datasets in JSON	
+'''
 @app.route('/datasets')
 def scan_dataset():
     global chosen_analysis
@@ -33,6 +41,11 @@ def scan_dataset():
     print('datasets requested')
     return ujson.dumps(files)
 
+'''	
+Input Request:      dataset: string: Selected dataset	
+Description:        Load selected dataset into dataframe	
+Output Response:    None	
+'''
 @app.route('/dataload')
 def data_load():
     global analysis
@@ -100,6 +113,16 @@ def compute():
 
         return ujson.dumps(result)
 
+	'''	
+Input Request:      index: integer	
+                        Index of the dataframe to be deleted/exported	
+                    type: string	
+                        Desired action on dataframe, either 'delete' or 'export'        	
+Description:        	
+					If the requested action is 'delete': Deletes all intermediate dataframes at and after the selected dataframe	
+                    If the requested action is 'export': Exports selected intermediate dataframe	
+Output Response:    Type of action taken, either 'delete' or 'export', in JSON  	
+'''
 @app.route('/intermediatedata')
 def delete():
     global chosen_analysis
@@ -147,7 +170,13 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     return response
 
-
+	'''	
+Input Parameters:   filename: string	
+                    Filename of dataset to be loaded	
+Description:        Helper for data_load(). Load dataset into dataframe.	
+Output:             df: Pandas dataframe	
+                    	Dataframe with dataset loaded onto it	
+'''
 def load_dataset(filename):
     data_path = os.path.join(os.path.dirname(os.path.abspath(__file__)) + '/../../data/', filename + ".csv")
     df = pd.read_csv(data_path)
