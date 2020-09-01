@@ -32,14 +32,12 @@ class Recommender:
                     List of codeblocks compatible with dataset
                 state: JSON string
                 current state of the application
+                currated from tutorials
     Description:        
                 Get next set of expert suggestions given current state
     Output:             suggestions: list of dictionaries
                 Each dictionary is a codeblock that is manually suggested, with the keys 'name', 'probability', and 'description'. List is ranked in descending order by probability. 
         '''
-    #modify so it interacts with dictionary and returns suggestions
-    #ranks list of entries its been given from input dictionary or list of templates/codeblocks
-    #change this to use dictionary
     def get_manual_suggestions(self, dataset, state=None):
 
         print ("in get_manual_suggestions")
@@ -48,25 +46,17 @@ class Recommender:
         suggestion_dict = dict()
         checked = {}
 
-        # the name of the most recently executed block
         current_analysis = json.loads(state)
 
-        # do we have a name?
         if current_analysis:
-          # get the id
           current_id = self.getIdForBlockName(current_analysis)
-          # this recommendation was from the crowd, need something from the experts
           if current_id and current_id not in self.expertIds:
-            # get the relevant expert ids
             candidates = self.retrieveExpertBlockIdsByBlockTags(current_id)
-            # do we have any expert blocks with overlapping tags?
             if candidates and len(candidates) > 0:
-              # randomly pick a block from the list for now
               candidate_count = 0
               while(True):
                 rand_int = random.randint(0,len(candidates)-1)
                 new_id = list(candidates)[rand_int]
-                # get the corresponding block name
                 current_analysis = self.codeblock_id_to_name(new_id)
                 candidate_count += 1
                 if (current_analysis in checked.keys() and checked[current_analysis]):
@@ -141,22 +131,15 @@ class Recommender:
         current_id = "-1"
         checked = {}
 
-        # do we have a name?
         if current_analysis:
-          # get the id
           current_id = self.getIdForBlockName(current_analysis)
-          # this recommendation was from the experts, need something from the crowd
           if current_id and current_id not in self.crowdIds:
-            # get the relevant crowd ids
             candidates = self.retrieveCrowdBlockIdsByBlockTags(current_id)
-            # do we have any crowd blocks with overlapping tags?
             if candidates and len(candidates) > 0:
-              # randomly pick a block from the list for now
               candidate_count = 0
               while(True):
                 rand_int = random.randint(0,len(candidates)-1)
                 new_id = list(candidates)[rand_int]
-                # get the corresponding block name
                 current_analysis = self.codeblock_id_to_name(new_id)
                 candidate_count += 1
 
@@ -166,14 +149,12 @@ class Recommender:
                   check = self.check_codeblock(current_analysis, dataset, state)
                   checked[current_analysis] = check
                   if (check):
-                    # print("get_crowd_suggestions: new current_analysis",current_analysis)
                     break
 
                 if(candidate_count == len(candidates)):
                   break
 
 
-        # automated analysis needs one more step from name code block name to id
         with open(os.path.dirname(os.path.abspath(__file__)) + '/../' + 'dictionary_code_map.json', 'r') as f_dict:
             json_dict = json.load(f_dict)
 
@@ -239,7 +220,6 @@ class Recommender:
         for i in range(0, len(json_data)):
             analyses.append({'name': json_data[i]["user-data"]["method"], 'desecription': json_data[i]["description"]})
 
-        # print('get_analysis_list: ' + str(analyses))
         return analyses
 
     '''
@@ -269,7 +249,6 @@ class Recommender:
     Description:        For the given code block id, get the ids of blocks with the same tags
     Output:             List of strings containing IDs                                          
     '''
-    # for the given block id, get the ids of blocks with the same tags
     def retrieveCrowdBlockIdsByBlockTags(self,blockId,blocks=None):
       blockId = str(blockId)
       tags = self.getTagsForBlockId(blockId,blocks)
@@ -327,8 +306,6 @@ class Recommender:
     '''
     def retrieveBlockNamesForTags(self, tags,blocks=None):
       idxs = self.retrieveBlockIdsForTags(tags,blocks)
-      #print "indexes:",idxs
-      #print "methods:",[self.codeblock_id_to_name(idx) for idx in idxs]
       return [self.codeblock_id_to_name(idx) for idx in idxs]
 
     '''
@@ -357,7 +334,6 @@ class Recommender:
     '''
     def getExpertIds(self):
       allBlocks = self.openDictionary()
-      #print "total blocks:",len(allBlocks)
       expertIds = {}
       with open(os.path.dirname(os.path.abspath(__file__)) + '/../' + 'manual_analysis_order.json', 'r') as f:
         expertOrderings = [o["analysis-order"] for o in json.load(f)]
@@ -373,10 +349,8 @@ class Recommender:
     Output:             crowdIds: dictionary
                             Dictionary containing crowd IDs
     '''
-    # get all ids associated with crowd recommendations
     def getCrowdIds(self):
       allBlocks = self.openDictionary()
-      #print "total blocks:",len(allBlocks)
       crowdIds = {}
       with open(os.path.dirname(os.path.abspath(__file__)) + '/../' + crowd_analysis_order, 'r') as f:
         crowdOrderings = (json.load(f)).values()
@@ -394,7 +368,6 @@ class Recommender:
     Output:             dmap: dictionary
                             Dictionary containing JSON from file
     '''
-    # open the given or default dictionary file
     def openDictionary(self,filename=None):
       if not filename:
         filename = os.path.dirname(os.path.abspath(__file__)) + '/../' + 'dictionary_code_map.json'
@@ -414,7 +387,6 @@ class Recommender:
     Description:        For the given codeblock name, return the ID of the first matching codeblock
     Output:             String of integer containing ID
     '''
-    # for the given block name return the id of the first matching block
     def getIdForBlockName(self,blockName,blocks=None):
       if not blocks:
         blocks = (self.openDictionary()).values()

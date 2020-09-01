@@ -67,7 +67,6 @@ class Analysis():
                         Dataframe at requested index, or new Dataframe if index out of range
     ''' 
     def export_intermediate_df(self, index):
-        # NOTE: this may not work for some cells, e.g., shuffle-split cell
         idx = int(index)
         if idx < len(self.intermediate_df):
             return self.intermediate_df[idx]

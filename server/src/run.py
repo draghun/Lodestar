@@ -17,7 +17,6 @@ from exporter import Exporter
 
 app = Flask(__name__)
 
-# disable logging for data transfer
 log = logging.getLogger('werkzeug')
 log.disabled = True
 
@@ -42,7 +41,12 @@ def scan_dataset():
     return ujson.dumps(files)
 
 '''	
-Input Request:      dataset: string: Selected dataset	
+Input Request:      dataset: string: Selected dataset
+dataset is what the uder chooses to input
+python in backend -> pick up dataset and load it into the dataframe
+data anyalsis -> what the user chooses to do
+output data frame -> what comes out of it
+
 Description:        Load selected dataset into dataframe to be used for analysis	
 Output Response:    None	
 '''
@@ -73,7 +77,9 @@ def data_load():
 Input Request:      None	
 Description:        The user selects what they want to compute. 
                     If the chosen computation is a valid one, then it computes it and then outputs ____ 	
-Output Response:    unsure	
+Output Response:    ujson -> converts string result into a json object
+	dictionary is converted to json object
+    getting passed back and forht is strings
 '''
 @app.route('/compute')
 def compute():
@@ -170,7 +176,7 @@ def export():
 
 '''	
 Input Request:      None	
-Description:        Adds headers 
+Description:        Flask function
 Output Response:    unsure	
 '''
 @app.after_request

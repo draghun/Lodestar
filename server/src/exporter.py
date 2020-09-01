@@ -1,4 +1,7 @@
-
+''' The Exporter class keeps track of code blocks that the user selects to run, and then
+    stores them in a seperate notebook. When the user is ready it triggers a download
+    so that the notebook is now on the user's computer
+'''
 from IPython.nbformat import v3, v4
 
 from codeblock_class import CodeBlock
@@ -6,6 +9,13 @@ import inspect
 import ujson 
 import os
 import json
+
+'''	
+Input Request:      state: JSON string	
+Description:        Initalizes the states that the user could have chosen to apply to the dataset
+                    Includes the name of the state, description, and how to call the method
+Output Response:    None
+'''
 
 class Exporter():
     def __init__(self):
@@ -55,6 +65,16 @@ class Exporter():
         calc_wordvec = inspect.getsource(method_to_call)
         self.notebook_tuple.append([wordvec_method, wordvec_des, calc_wordvec])
 
+    '''	
+    Input Request:      state: JSON string
+                            current state of the Lodestar application
+                        current_analysis: JSON object 
+                            current analysis that the user chose
+    Description:        adds the current analysis being run to a notebook containing all the prior
+                        states of the dataset and triggers a download for the user
+    Output Response:    a JSON that is a notebook containing the 
+                        analysis that the user chose
+    '''
     def download_notebook(self, current_analysis):
         string = "# -*- coding: utf-8 -*-\n# <nbformat>3.0</nbformat>\n"
 
@@ -79,6 +99,16 @@ class Exporter():
 
         return jsonform
 
+    '''	
+    Input Request:      state: JSON string
+                            current state of the Lodestar application
+                        notebook_methods: JSON object 
+                            current analysis that the user chose
+    Description:        takes the analysis the user wants to run and returns the tuple of
+                        the data after the anaysis is run
+    Output Response:    tuple: containing information on how the dataset will look once the new
+                        analysis is applied 
+    '''
     def get_notebook_tuples(self, notebook_methods):
         notebook_tuples = []
         with open(os.path.dirname(os.path.abspath(__file__)) + '/../' + 'dictionary_code_map.json', 'r') as f_dict:

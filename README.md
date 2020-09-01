@@ -18,8 +18,8 @@ Lodestar is developed as a web-application. The front-end is written in HTML, CS
 The Pandas data analysis library is heavily used, especially for the Dataframe data structure. 
 
 
-## ```/src/``` 
-The ```/src/``` folder contains the front-end of the application. ```/src/main-app/``` contains three files that control the front-end display and logic. 
+## ```src/``` 
+The ```src/``` folder contains the front-end of the application. ```src/main-app/``` contains three files that control the front-end display and logic. 
 
 ```main-app.html``` contains the MainApp class and handles the HTML templating, CSS styling, and JavaScript functions throughout the front-end of the application.
 
@@ -27,8 +27,8 @@ The ```/src/``` folder contains the front-end of the application. ```/src/main-a
 
 ```suggest-panel``` contains the SuggestPanel class and handles HTML templating, CSS styling, and JavaScript functions related to the recommendation panel.
 
-## ```/server/``` 
-The ```/server/``` folder contains files for the back-end of the application. ```/server/src/``` contains three files that control much of the application's execution. 
+## ```server/``` 
+The ```server/``` folder contains files for the back-end of the application. ```server/src/``` contains three files that control much of the application's execution. 
 
 ```run.py``` establishes the routes of the program and executes the Flask application. 
 
@@ -36,13 +36,6 @@ The ```/server/``` folder contains files for the back-end of the application. ``
 
 ```recommender.py``` contains the Recommender class, which determines the expert and crowd recommendations given the current place in the data analysis process. 
 
-
-## ```/data/``` 
-The ```/data/``` folder contains the stored datasets that can be selected from the 'Select a Dataset' dropdown. If the user elects to upload their own dataset, this dataset is also stored in the ```/data/``` folder. 
-
-```cars.csv``` 
-
-```housing.csv``` from Pandas dataset collection
 
 # Lodestar Setup Instructions
 
@@ -55,11 +48,8 @@ Clone the repo:
 
 Before continuing, we have to download Node & npm: 
 
-[For Windows](https://www.guru99.com/download-install-node-js.html)
+[Download](https://www.npmjs.com/get-npm)
 
-[For Mac OS](https://treehouse.github.io/installation-guides/mac/node-mac.html)
-
-[See here for more information on NPM](https://www.npmjs.com/get-npm)
 
 **Note**: NPM version should be 10 
 
@@ -88,9 +78,9 @@ After installing Bower, run `bower install` in the ***root directory*** of the p
 
 ## **Step 3**
 
-Finally, we need to install all the ***backend dependencies*** that Lodestar needs in order to work. Projects like Lodestar can sometimes have MANY dependencies, so in order to make our job easier, we have all the dependencies in a list called `requirements.txt` located in the `/server` directory of the project. 
+Finally, we need to install all the ***backend dependencies*** that Lodestar needs in order to work. Projects like Lodestar can sometimes have MANY dependencies, so in order to make our job easier, we have all the dependencies in a list called `requirements.txt` located in the `server/` directory of the project. 
 
-Navigate to `/server` and run `pip install -r requirements.txt` 
+Navigate to `server/` and run `pip install -r requirements.txt` 
 
 **Note**: If you are working on a Windows machine, you may need to install pip separately. To do so, visit [here](https://www.liquidweb.com/kb/install-pip-windows/) 
 
