@@ -8,7 +8,7 @@ import json
 import random
 from analysis import Analysis
 
-crowd_analysis_order = 'new_crowd_analysis_order.json'
+crowd_analysis_order = 'crowd_analysis_order.json'
 
 class Recommender:
 
@@ -206,7 +206,7 @@ class Recommender:
 
     '''
     Input Parameters:   json_data: list of dictionaries
-                        List of codeblocks in form of dictionary, with the keys 'name' and 'description' 
+                        List of codeblocks in form of dictionary, with the keys name and description
     Description:        Returns list of codeblocks
     Output:             analyses: list of dictionaries 
                         Each dictionary represents a codeblock.
@@ -214,7 +214,7 @@ class Recommender:
     def get_analysis_list(self):
         analyses = []
 
-        with open(os.path.dirname(os.path.abspath(__file__)) + '/../' + 'dictionary.json', 'r') as f:
+        with open(os.path.dirname(os.path.abspath(__file__)) + '/../' + 'dictionary_code_map.json', 'r') as f:
             json_data = json.load(f)
 
         for i in range(0, len(json_data)):
@@ -231,7 +231,7 @@ class Recommender:
     '''
     def get_description(self, name):
         description = ""
-        with open(os.path.dirname(os.path.abspath(__file__)) + '/../' + 'dictionary.json', 'r') as f:
+        with open(os.path.dirname(os.path.abspath(__file__)) + '/../' + 'dictionary_code_map.json', 'r') as f:
             json_data = json.load(f)
 
         for i in range(0, len(json_data)):
